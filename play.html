@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+    <input type="text" id="test">
+<button id="btn">Get</button>
+<h1 id="info"></h1>
+<img id="img">
+<audio id="audio"></audio>
+  <script>
+let test=document.getElementById("test")
+let info=document.getElementById("info");
+let btn=document.getElementById("btn");
+let image=document.getElementById("img");
+let audio=document.getElementById("audio")
+btn.addEventListener("click",()=>{
+  
+  const apiUrl = 'https://genius-song-lyrics1.p.rapidapi.com/artist/albums/?id=344497&per_page=20&page=1'; // Adjust if needed
+    const query = 'id'; 
+fetch(`${apiUrl}?q=${query}&type=track`, {
+  method: 'GET',
+  headers: {
+    'x-rapidapi-key': '8b625c818bmsh6d6ff647813362ap15798fjsna42d7a661f79',
+    'x-rapidapi-host': 'spotify23.p.rapidapi.com',
+    'Content-Type': 'application/json',
+  },
+})
+.then(response => {
+  if (!response.ok) {
+    throw new Error(`HTTP error! Status: ${response.status}`);
+  }
+  return response.json();
+})
+.then(data => {console.log(data)
+    // image.src=data.items[0].track.album.images[0].url
+    // info.textContent=data.items[0].track.name    
+    // audio.src=data.items[0].track.preview_url
+//   info.innerHTML=data.sections.items[0].contents.items[0].name
+//   image.src=data.sections.items[0].contents.items[0].visuals.avatar[0].url
+})
+
+.catch(error => console.error('Error:', error));
+
+})
+    
+
+
+  </script>
+</body>
+</html>

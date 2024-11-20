@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Local Playlist UI</title>
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <style>
+    body {
+      background-color: #121212;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+
+    .spotify-playlists {
+      padding: 20px 40px;
+    }
+
+    .search-bar {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .search-bar input {
+      padding: 10px;
+      width: 300px;
+      border-radius: 4px;
+      border: none;
+    }
+
+    .more {
+      color: #ffffff;
+      font-size: 22px;
+      text-align: end;
+      position: relative;
+      top: -20px;
+    }
+
+    .more a {
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .more a:hover {
+      text-decoration: underline;
+    }
+
+    .spotify-playlists .list {
+      display: flex;
+      gap: 20px;
+      overflow-x: scroll;
+    }
+
+    .spotify-playlists .list .item {
+      min-width: 130px;
+      width: 130px;
+      padding: 15px;
+      background-color: #181818;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.4s ease;
+    }
+
+    .spotify-playlists .list .item:hover {
+      background-color: #252525;
+    }
+
+    .spotify-playlists .list .item img {
+      width: 100%;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+
+    .spotify-playlists .list .item .play {
+      position: relative;
+    }
+
+    .spotify-playlists .list .item .play .fa {
+      position: absolute;
+      right: 10px;
+      top: -60px;
+      padding: 18px;
+      background-color: #1db954;
+      border-radius: 100%;
+      opacity: 0;
+      transition: all 0.4s ease;
+    }
+
+    .spotify-playlists .list .item:hover .play .fa {
+      opacity: 1;
+      transform: translateY(-10px);
+    }
+
+    .spotify-playlists .list .item h4 {
+      color: #ffffff;
+      font-size: 14px;
+      margin-bottom: 10px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .spotify-playlists .list .item p {
+      color: #989898;
+      font-size: 12px;
+      line-height: 20px;
+      font-weight: 600;
+    }
+
+    .audio-player {
+      display: none;
+      width: 100%;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="spotify-playlists">
+    <div class="search-bar">
+      <input
+        type="text"
+        id="search-input"
+        placeholder="Search by track or artist..."
+        oninput="filterPlaylist()"
+      />
+    </div>
+
+    <div class="more">
+      <a href="#">See More</a>
+    </div>
+
+    <div class="list" id="playlist-container"></div>
+  </div>
+
+  <script>
+    const url = 'http://localhost:3000/posts'; // Local API URL
+    let activeAudioPlayer = null;
+    let tracksData = []; // Store fetched tracks for search
+
+    async function fetchPlaylist() {
+      try {
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        const data = await response.json();
+        tracksData = data[0].items; // Store tracks for search
+        displayPlaylistItems(tracksData);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    }
+
+    function displayPlaylistItems(tracks) {
+      const container = document.getElementById('playlist-container');
+      container.innerHTML = ''; // Clear previous content
+
+      tracks.forEach((item) => {
+        const track = item.track;
+
+        const card = document.createElement('div');
+        card.classList.add('item');
+
+        const img = document.createElement('img');
+        img.src = track.album.images[0].url;
+        img.alt = track.name;
+
+        const playIcon = document.createElement('div');
+        playIcon.classList.add('play');
+        playIcon.innerHTML = '<i class="fa fa-play"></i>';
+
+        const trackTitle = document.createElement('h4');
+        trackTitle.textContent = track.name;
+
+        const artistName = document.createElement('p');
+        artistName.textContent = track.artists[0].name;
+
+        const audioPlayer = document.createElement('audio');
+        audioPlayer.classList.add('audio-player');
+        audioPlayer.controls = true;
+
+        playIcon.addEventListener('click', () => {
+          const previewUrl = track.preview_url;
+
+          if (previewUrl) {
+            audioPlayer.src = previewUrl;
+            audioPlayer.play();
+
+            if (activeAudioPlayer && activeAudioPlayer !== audioPlayer) {
+              activeAudioPlayer.pause();
+              activeAudioPlayer.style.display = 'none';
+            }
+
+            if (audioPlayer.style.display === 'none' || audioPlayer.style.display === '') {
+              audioPlayer.style.display = 'block';
+              activeAudioPlayer = audioPlayer;
+            } else {
+              audioPlayer.style.display = 'none';
+              activeAudioPlayer = null;
+            }
+          } else {
+            alert('No preview available for this track.');
+          }
+        });
+
+        card.appendChild(img);
+        card.appendChild(playIcon);
+        card.appendChild(trackTitle);
+        card.appendChild(artistName);
+        card.appendChild(audioPlayer);
+
+        container.appendChild(card);
+      });
+    }
+
+    function filterPlaylist() {
+      const searchTerm = document.getElementById('search-input').value.toLowerCase();
+      const filteredTracks = tracksData.filter((item) =>
+        item.track.name.toLowerCase().includes(searchTerm) ||
+        item.track.artists[0].name.toLowerCase().includes(searchTerm)
+      );
+      displayPlaylistItems(filteredTracks);
+    }
+
+    fetchPlaylist();
+  </script>
+
+</body>
+</html>
